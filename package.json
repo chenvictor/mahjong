@@ -1,0 +1,22 @@
+{
+  "name": "Mahjong",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": "",
+  "license": "",
+  "author": "",
+  "scripts": {
+    "build": "parcel build index.html",
+    "dev": "parcel index.html --open",
+    "start": "npm run build && npm run dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@parcel/packager-raw-url": "2.0.0-beta.2",
+    "@parcel/transformer-webmanifest": "2.0.0-beta.2",
+    "parcel": "^2.0.0-beta.2"
+  },
+  "dependencies": {
+    "konva": "^7.2.5"
+  }
+}
