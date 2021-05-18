@@ -3,6 +3,8 @@
  * Source: https://en.wikipedia.org/wiki/Mahjong_tiles#Contents
  */
 import Konva from 'konva';
+import {Tiles} from "./tiles";
+import {Index} from "./types";
 
 const URLS = [
   // Dots
@@ -56,98 +58,53 @@ const URLS = [
 ];
 
 const WIDTH = 2000, HEIGHT = 1200;
-export const HAND_TILE_SPACING = 110;
-const HOVER_OFFSET = 5;
-const SELECTED_OFFSET = 20;
-
-const ATTR_INDEX = 'MY_ATTR_INDEX';
-const ATTR_TILE = 'MY_ATTR_TILE';
-const ATTR_SELECTED = 'MY_ATTR_SELECTED';
-
-type Index = any;
-
-type UIEvent = 'click';
-type UIEventClickHandler = (tile: Index, idx: Index) => void;
 
 export class UI {
-  public readonly scale: number;
   public readonly images: HTMLImageElement[];
   private readonly stage: Konva.Stage;
-  private readonly handLayer: Konva.Layer;
-  private readonly handY: number;
-  private selection: {
-    n: number,
-    resolve?: any,
-    reject?: any
-  }
+  private readonly backgroundLayer: Konva.Layer;
+  private handTiles: Tiles[];
   private constructor(containerId: string, images: HTMLImageElement[], scale: number) {
-    this.scale = scale;
     this.images = images;
     this.stage = new Konva.Stage({
       container: containerId,
       width: WIDTH*scale,
       height: HEIGHT*scale,
+      scaleX: scale,
+      scaleY: scale,
     });
-    this.handLayer = new Konva.Layer();
-    this.stage.add(this.handLayer);
-    this.handY = (HEIGHT - this.images[0].height - 10)*scale;
-    this.selection = {
-      n: 0,
-      resolve: null,
-      reject: null,
-    };
-    this.handLayer.on('mouseover', (evt) => {
-      const shape = evt.target;
-      document.body.style.cursor = 'pointer';
-      shape.offsetY(shape.offsetY() + HOVER_OFFSET*scale);
-      this.handLayer.draw();
-    });
-    this.handLayer.on('mouseout', (evt) => {
-      const shape = evt.target;
-      document.body.style.cursor = 'default';
-      shape.offsetY(shape.offsetY() - HOVER_OFFSET*scale);
-      this.handLayer.draw();
-    });
-    this.handLayer.on('dragstart', (evt) => {
-      const shape = evt.target;
-      shape.moveToTop();
-    });
-    this.handLayer.on('dragmove', (evt) => {
-      const shape = evt.target;
-      const dIndex = shape.getAttr(ATTR_INDEX);
-      const nIndex = this.posToIndex(shape.x());
-      if (nIndex !== dIndex) {
-        shape.setAttr(ATTR_INDEX, nIndex);
-        this.handLayer.children.each((child) => {
-          if (child == shape) return;
-          const cIndex = child.getAttr(ATTR_INDEX);
-          if (cIndex === nIndex) {
-            this.moveHandTile(child, dIndex);
-          }
-        });
-      }
-    });
-    this.handLayer.on('dragend', (evt) => {
-      const shape = evt.target;
-      const nIndex = this.posToIndex(shape.x());
-      // Snap back to position
-      this.moveHandTile(shape, nIndex, true);
-    });
-    this.handLayer.on('click', (evt) => {
-      const shape = evt.target;
-      if (this.selection.resolve !== null) {
-        if (shape.getAttr(ATTR_SELECTED)) {
-          this.selection.n++;
-          shape.setAttr(ATTR_SELECTED, false);
-          shape.offsetY(shape.offsetY() - SELECTED_OFFSET*scale);
-        } else if (this.selection.n > 0) {
-          this.selection.n--;
-          shape.setAttr(ATTR_SELECTED, true);
-          shape.offsetY(shape.offsetY() + SELECTED_OFFSET);
-        }
-        this.handLayer.draw();
-      }
-    });
+    this.backgroundLayer = new Konva.Layer();
+    this.stage.add(this.backgroundLayer);
+    this.handTiles = [
+      new Tiles(this.stage, {
+        x: 10,
+        y: (HEIGHT - this.images[0].height - 10),
+        scaleX: 1,
+        scaleY: 1,
+        rotation: 0,
+        draggable: true,
+      }, this.images),
+    ];
+    this.handTiles[0].setTiles([0,1,2,5,3,20,30,41,22]);
+    // testing
+
+    (() => {
+      const tiles = new Tiles(this.stage, {
+        x: 800,
+        y: 500,
+        scaleX: .5,
+        scaleY: .5,
+        rotation: 180,
+        draggable: false,
+      }, this.images);
+      tiles.setTiles([42,42,42,42]);
+    })();
+    this.backgroundLayer.add(new Konva.Rect({
+      width: WIDTH,
+      height: HEIGHT,
+      fill: '#cccccc',
+    }));
+    this.backgroundLayer.draw();
   }
   static async create(containerId: string): Promise<UI> {
     // Get window size
@@ -161,79 +118,10 @@ export class UI {
       })));
     return new UI(containerId, images, scale);
   }
-  private posToIndex(xPos: number): Index {
-    return Math.round(xPos / HAND_TILE_SPACING / this.scale);
-}
-  private moveHandTile(tile: any, nIndex: any, setZ: boolean = false) {
-    tile.setAttr(ATTR_INDEX, nIndex);
-    tile.x(nIndex*HAND_TILE_SPACING*this.scale);
-    if (setZ) {
-      tile.setZIndex(nIndex);
-    }
+  public setHandTiles(player: Index, tiles: any[]) {
+    this.handTiles[player].setTiles(tiles);
   }
-  private dragBoundFunc(pos: Konva.Vector2d): Konva.Vector2d {
-    const minX = 0;
-    const maxX = Math.max(minX, HAND_TILE_SPACING * (this.handLayer.children.length-1) * this.scale);
-    return {
-      x: Math.max(Math.min(maxX, pos.x), minX),
-      y: this.handY,
-    };
-  }
-  setHand(tiles: any[]): void {
-    this.handLayer.destroyChildren();
-    for (let i=0; i < tiles.length; ++i) {
-      const tile = tiles[i];
-      const shape = new Konva.Image({
-        x: i*HAND_TILE_SPACING*this.scale,
-        y: this.handY,
-        draggable: true,
-        dragBoundFunc: this.dragBoundFunc.bind(this),
-        dragDistance: 5*this.scale,
-        image: this.images[tile],
-        scale: {
-          x: this.scale,
-          y: this.scale,
-        }
-      });
-      this.handLayer.add(shape);
-      shape.setAttrs({
-        [ATTR_INDEX]: i,
-        [ATTR_TILE]: tile,
-        [ATTR_SELECTED]: false,
-      });
-    }
-    this.handLayer.batchDraw();
-  }
-  discard(indices: Index[]) {
-    indices.sort((a,b) => b-a);
-    indices.forEach((index) => {
-      this.handLayer.children.each((child) => {
-        if (child.index == index) {
-          child.destroy();
-        } else if (child.index > index) {
-          this.moveHandTile(child, child.index - 1);
-        }
-      });
-    });
-    this.handLayer.draw();
-  }
-  select(n: number): Promise<[[Index, Index]]> {
-    return new Promise((resolve, reject) => {
-      this.selection.n = n;
-      this.selection.resolve = resolve;
-      this.selection.reject = reject;
-    });
-  }
-  setTilesCount(player: Index, count: number) {
-
-  }
-  on(evt: UIEvent, handler: UIEventClickHandler) {
-    switch (evt) {
-      case 'click':
-        this.handLayer.on('click', (evt) => {
-          const shape = evt.target;
-          handler(shape.getAttr(ATTR_TILE), shape.getAttr(ATTR_INDEX));
-        });
-    }
+  public select(n: number) {
+    return this.handTiles[0].select(n);
   }
 }
