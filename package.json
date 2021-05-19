@@ -9,14 +9,20 @@
     "build": "parcel build index.html",
     "dev": "parcel index.html --open",
     "start": "npm run build && npm run dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "server:build": "tsc --build ./server/tsconfig.json",
+    "server:run": "node ./server/dist/server/server/src/server.js"
   },
   "devDependencies": {
     "@parcel/packager-raw-url": "2.0.0-beta.2",
     "@parcel/transformer-webmanifest": "2.0.0-beta.2",
-    "parcel": "^2.0.0-beta.2"
+    "@types/express": "^4.17.11",
+    "@types/ws": "^7.4.4",
+    "parcel": "^2.0.0-beta.2",
+    "typescript": "^4.2.4"
   },
   "dependencies": {
-    "konva": "^7.2.5"
+    "express": "^4.17.1",
+    "konva": "^7.2.5",
+    "ws": "^7.4.5"
   }
 }

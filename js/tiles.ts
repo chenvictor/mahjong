@@ -1,4 +1,6 @@
 import Konva from "konva";
+import {clamp} from "./utils";
+import {HandTile} from "./types";
 
 const HAND_TILE_SPACING = 110;
 const HOVER_OFFSET = 5;
@@ -10,6 +12,16 @@ const ATTR_SELECTED = 'MY_ATTR_SELECTED';
 
 type Index = any;
 
+export type TilesConfigParameter = {
+  x?: number;
+  y?: number;
+  scaleX?: number;
+  scaleY?: number;
+  rotation?: number;
+  draggable?: boolean;
+  selectable?: boolean;
+};
+
 export type TilesConfig = {
   x: number;
   y: number;
@@ -17,6 +29,23 @@ export type TilesConfig = {
   scaleY: number;
   rotation: number;
   draggable: boolean;
+  selectable: boolean;
+};
+
+/**
+ * Assign default values if needed
+ * @param params
+ */
+const paramToConfig = (params: TilesConfigParameter): TilesConfig => {
+  return {
+    x: params.x ?? 0,
+    y: params.y ?? 0,
+    scaleX: params.scaleX ?? 1,
+    scaleY: params.scaleY ?? 1,
+    rotation: params.rotation ?? 0,
+    draggable: params.draggable ?? false,
+    selectable: params.selectable ?? false,
+  };
 };
 
 /**
@@ -24,83 +53,94 @@ export type TilesConfig = {
  */
 export class Tiles {
   private readonly config: TilesConfig;
-  private layer: Konva.Layer;
-  private group: Konva.Group;
+  private readonly layer: Konva.Layer;
+  private readonly group: Konva.Group;
   private readonly tileImages: HTMLImageElement[];
-  private selection: {
-    n: number;
-    resolve: any;
-    reject: any;
-  };
-  public constructor(stage: Konva.Stage, config: TilesConfig, tileImages: HTMLImageElement[]) {
-    this.config = config;
-    this.layer = new Konva.Layer();
-    const {draggable, ...rest} = config;
+  public constructor(layer: Konva.Layer, config: TilesConfigParameter, tileImages: HTMLImageElement[]) {
+    this.config = paramToConfig(config);
+    this.layer = layer;
+    const {draggable, selectable, ...rest} = this.config;
     this.group = new Konva.Group(rest);
     this.tileImages = tileImages;
-    this.selection = {
-      n: 0,
-      resolve: null,
-      reject: null,
-    };
     this.layer.add(this.group);
-    stage.add(this.layer);
-    this.initHoverEvents()
     if (draggable) {
       this.initDragEvents();
     }
-    this.initSelectEvents();
-    this.group.on('click', ({target}) => {
-      const index = target.getAttr(ATTR_INDEX);
-      const selected = target.getAttr(ATTR_SELECTED);
-      const tile = target.getAttr(ATTR_TILE);
-      console.log({
-        index, tile, selected
-      });
-      console.log(target.position());
-    });
+    if (selectable) {
+      this.initSelectEvents();
+    }
+    if (selectable || draggable) {
+      this.initHoverEvents();
+    }
   }
-  public setTiles(tiles: any[]): void {
+  public setTiles(tiles: number | Index[]) {
+    if (typeof tiles === 'number') {
+      tiles = Array(tiles).fill(42);
+    }
     this.group.destroyChildren();
     for (let i=0; i < tiles.length; ++i) {
-      const tile = tiles[i];
-      const shape = new Konva.Image({
-        x: i*HAND_TILE_SPACING,
-        y: 0,
-        draggable: this.config.draggable,
-        dragDistance: 5,
-        image: this.tileImages[tile],
-      });
-      this.group.add(shape);
-      shape.setAttrs({
-        [ATTR_INDEX]: i,
-        [ATTR_TILE]: tile,
-        [ATTR_SELECTED]: false,
-      });
+      this.addTile(tiles[i], false);
     }
     this.layer.draw();
   }
-  public select(n: number): Promise<[[Index, Index]]> {
-    return new Promise((resolve, reject) => {
-      this.selection.n = n;
-      this.selection.resolve = resolve;
-      this.selection.reject = reject;
+  public addTile(tile: Index, redraw: boolean = true) {
+    const i = this.getCount();
+    const shape = new Konva.Image({
+      x: i*HAND_TILE_SPACING,
+      y: 0,
+      draggable: this.config.draggable,
+      dragDistance: 5,
+      image: this.tileImages[tile],
     });
+    this.group.add(shape);
+    shape.setAttrs({
+      [ATTR_INDEX]: i,
+      [ATTR_TILE]: tile,
+      [ATTR_SELECTED]: false,
+    });
+    if (redraw) {
+      this.layer.draw();
+    }
+  }
+  public removeTiles(indices: Index[]) {
+    indices.sort((a,b) => b-a);
+    for (const i of indices) {
+      console.log(i);
+      const rem: Array<Konva.Group | Konva.Shape> = [];
+      this.group.children.each((child) => {
+        const tIdx = child.getAttr(ATTR_INDEX);
+        if (tIdx == i) {
+          rem.push(child);
+        } else if (tIdx > i) {
+          this.moveHandTile(child, tIdx-1);
+        }
+      });
+      rem.forEach((child) => child.destroy());
+    }
+    this.layer.draw();
+  }
+  public getSelected(): HandTile[] {
+    const ret: HandTile[] = [];
+    this.group.children.each((child) => {
+      if (child.getAttr(ATTR_SELECTED) === true) {
+        ret.push({
+          value: child.getAttr(ATTR_TILE),
+          index: child.getAttr(ATTR_INDEX),
+        });
+      }
+    });
+    return ret;
   }
   private initHoverEvents() {
     this.group.on('mouseover', ({target}) => {
-      if (this.config.draggable || this.isSelecting()) {
-        document.body.style.cursor = 'pointer';
-        target.offsetY(target.offsetY() + HOVER_OFFSET);
-        this.layer.draw();
-      }
+      document.body.style.cursor = 'pointer';
+      target.offsetY(target.offsetY() + HOVER_OFFSET);
+      this.layer.draw();
     });
     this.group.on('mouseout', ({target}) => {
-      if (this.config.draggable || this.isSelecting()) {
-        document.body.style.cursor = 'default';
-        target.offsetY(target.offsetY() - HOVER_OFFSET);
-        this.layer.draw();
-      }
+      document.body.style.cursor = 'default';
+      target.offsetY(target.offsetY() - HOVER_OFFSET);
+      this.layer.draw();
     });
   }
   private initDragEvents() {
@@ -131,26 +171,25 @@ export class Tiles {
   }
   private initSelectEvents() {
     this.group.on('click', ({target}) => {
-      if (this.isSelecting()) {
-        if (target.getAttr(ATTR_SELECTED)) {
-          this.selection.n++;
-          target.setAttr(ATTR_SELECTED, false);
-          target.offsetY(target.offsetY() - SELECTED_OFFSET);
-        } else if (this.selection.n > 0) {
-          this.selection.n--;
-          target.setAttr(ATTR_SELECTED, true);
-          target.offsetY(target.offsetY() + SELECTED_OFFSET);
-        }
-        this.group.draw();
+      if (target.getAttr(ATTR_SELECTED)) {
+        target.setAttr(ATTR_SELECTED, false);
+        target.offsetY(target.offsetY() - SELECTED_OFFSET);
+      } else {
+        target.setAttr(ATTR_SELECTED, true);
+        target.offsetY(target.offsetY() + SELECTED_OFFSET);
       }
+      this.layer.draw();
     });
+  }
+  private getCount() {
+    return this.group.children.length;
   }
   // Drag helpers
   private dragBoundFunc(pos: Konva.Vector2d): Konva.Vector2d {
     const minX = 0;
-    const maxX = Math.max(minX, HAND_TILE_SPACING * (this.group.children.length-1));
+    const maxX = Math.max(minX, HAND_TILE_SPACING * (this.getCount()-1));
     return {
-      x: Math.max(Math.min(maxX, pos.x), minX),
+      x: clamp(pos.x, minX, maxX),
       y: 0,
     };
   }
@@ -163,8 +202,5 @@ export class Tiles {
     if (setZ) {
       tile.setZIndex(nIndex);
     }
-  }
-  private isSelecting() {
-    return this.selection.resolve !== null;
   }
 }

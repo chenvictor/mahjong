@@ -263,17 +263,6 @@ textarea {
 
 #container {
   display: block;
+  margin: auto;
 }
 
-#button-container {
-  margin: 1em;
-}
-
-#button-container > button {
-  width: 8em;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-}
