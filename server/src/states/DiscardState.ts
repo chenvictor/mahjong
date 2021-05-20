@@ -2,6 +2,7 @@ import {Game, State} from "../Game";
 import {Index} from "../shared/types";
 import {Move} from "../events";
 import {WaitingState} from "./WaitingState";
+import {TurnState} from "./TurnState";
 
 export class DiscardState implements State {
   private readonly game: Game;
@@ -15,7 +16,13 @@ export class DiscardState implements State {
   }
   onMove(player: Index, move: Move, tiles: Index[]) {
     if (player !== this.player) return;
-    if (move === Move.HIT && tiles.length === 1) {
+    if (move !== Move.HIT) return;
+    if (tiles.length === 0) {
+      // cancel
+      this.game.setState(new TurnState(this.game, this.player));
+      return;
+    }
+    if (tiles.length === 1) {
       const tile = tiles[0];
       if (this.game.noWildcards(player, [tile])) {
         if (this.game.discardTile(player, tiles[0])) {

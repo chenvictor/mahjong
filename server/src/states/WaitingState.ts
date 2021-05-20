@@ -23,10 +23,11 @@ export class WaitingState implements State {
   constructor(game: Game) {
     this.game = game;
     this.moves = Array(game.nplayers).fill(Move.NONE);
-    this.moves[game.getTurn()] = Move.DEAL;
     this.timeout = setTimeout(() => {
       this.timeout = null;
-      this.next();
+      if (!this.moves.every(MOVE_NONE) || this.shouldEnd(Move.NONE)) {
+        this.next();
+      }
     }, WaitingState.WAIT_MS);
   }
   private next() {
