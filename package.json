@@ -1,16 +1,16 @@
 {
-  "name": "Mahjong",
+  "name": "mahjong",
   "version": "0.0.1",
   "description": "",
   "keywords": "",
   "license": "",
   "author": "",
   "scripts": {
-    "build": "parcel build index.html",
+    "build": "parcel build index.html --public-url ./",
     "dev": "parcel index.html --open",
     "start": "npm run build && npm run dev",
     "server:build": "tsc --build ./server/tsconfig.json",
-    "server:run": "node ./server/dist/server/server/src/server.js"
+    "server:run": "node ./server/dist/server/server.js"
   },
   "devDependencies": {
     "@parcel/packager-raw-url": "2.0.0-beta.2",

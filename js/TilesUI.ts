@@ -1,6 +1,6 @@
 import Konva from "konva";
 import {clamp} from "./utils";
-import {HandTile} from "./types";
+import {TileImages} from "./TileImages";
 
 const HAND_TILE_SPACING = 110;
 const HOVER_OFFSET = 5;
@@ -51,12 +51,12 @@ const paramToConfig = (params: TilesConfigParameter): TilesConfig => {
 /**
  * Renders a number of hidden tiles
  */
-export class Tiles {
+export class TilesUI {
   private readonly config: TilesConfig;
   private readonly layer: Konva.Layer;
   private readonly group: Konva.Group;
-  private readonly tileImages: HTMLImageElement[];
-  public constructor(layer: Konva.Layer, config: TilesConfigParameter, tileImages: HTMLImageElement[]) {
+  public readonly tileImages: TileImages;
+  public constructor(layer: Konva.Layer, config: TilesConfigParameter, tileImages: TileImages) {
     this.config = paramToConfig(config);
     this.layer = layer;
     const {draggable, selectable, ...rest} = this.config;
@@ -75,12 +75,25 @@ export class Tiles {
   }
   public setTiles(tiles: number | Index[]) {
     if (typeof tiles === 'number') {
-      tiles = Array(tiles).fill(42);
+      this.group.destroyChildren();
+      tiles = Array(tiles).fill(-1);
+    } else {
+      const tileSet = new Set(tiles);
+      const remIndices: Index = [];
+      this.group.children.each((child) => {
+        // @ts-ignore
+        const tile: Index = child.getAttr(ATTR_TILE);
+        if (!tileSet.has(tile)) {
+          remIndices.push(child.getAttr(ATTR_INDEX));
+        }
+        tileSet.delete(tile);
+      });
+      this.removeTiles(remIndices);
+      tiles = Array.from(tileSet);
     }
-    this.group.destroyChildren();
-    for (let i=0; i < tiles.length; ++i) {
-      this.addTile(tiles[i], false);
-    }
+    tiles.forEach((tile) => {
+      this.addTile(tile, false);
+    });
     this.layer.draw();
   }
   public addTile(tile: Index, redraw: boolean = true) {
@@ -90,7 +103,7 @@ export class Tiles {
       y: 0,
       draggable: this.config.draggable,
       dragDistance: 5,
-      image: this.tileImages[tile],
+      image: this.tileImages.get(tile),
     });
     this.group.add(shape);
     shape.setAttrs({
@@ -102,10 +115,10 @@ export class Tiles {
       this.layer.draw();
     }
   }
-  public removeTiles(indices: Index[]) {
+  private removeTiles(indices: Index[]) {
+    // remove using index
     indices.sort((a,b) => b-a);
     for (const i of indices) {
-      console.log(i);
       const rem: Array<Konva.Group | Konva.Shape> = [];
       this.group.children.each((child) => {
         const tIdx = child.getAttr(ATTR_INDEX);
@@ -119,14 +132,11 @@ export class Tiles {
     }
     this.layer.draw();
   }
-  public getSelected(): HandTile[] {
-    const ret: HandTile[] = [];
+  public getSelected(): Index[] {
+    const ret: Index[] = [];
     this.group.children.each((child) => {
       if (child.getAttr(ATTR_SELECTED) === true) {
-        ret.push({
-          value: child.getAttr(ATTR_TILE),
-          index: child.getAttr(ATTR_INDEX),
-        });
+        ret.push(child.getAttr(ATTR_TILE));
       }
     });
     return ret;

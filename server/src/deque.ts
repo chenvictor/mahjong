@@ -1,7 +1,7 @@
 /**
  * Simplex deque that only supports item removal
  */
-import {Index} from "../../js/types";
+import {Index} from "./shared/types";
 
 export class Deque<T> {
   private readonly array: T[];
@@ -16,9 +16,15 @@ export class Deque<T> {
     return this.back - this.front;
   }
   popFront() {
+    if (this.getSize() <= 0) {
+      console.error('deque popFront but empty!');
+    }
     return this.array[this.front++];
   }
   popBack() {
+    if (this.getSize() <= 0) {
+      console.error('deque popBack but empty!');
+    }
     return this.array[--this.back];
   }
 }

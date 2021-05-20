@@ -1,7 +1,8 @@
 // See: https://stackoverflow.com/a/12646864
 import * as WebSocket from "ws";
-import {ServerMessage} from "./events";
-import {Index} from "../../js/types";
+import {ServerMessage, TilesSetData} from "./events";
+import {Index} from "./shared/types";
+import {Meld} from "./Meld";
 
 export const shuffle = (array: any[]) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -11,11 +12,18 @@ export const shuffle = (array: any[]) => {
   return array;
 };
 
-export const mod4 = (index: Index): Index => {
-  return ((index % 4)+4) % 4;
+/**
+ * Returns mod in range [0, m)
+ * @param v
+ * @param m
+ */
+export const mod = (v: Index, m: number): Index => {
+  return ((v % m)+m) % m;
 };
 
 export const noop = () => {};
+
+export const identity = <T>(val: T): T => val;
 
 export const send = (ws: WebSocket, data: ServerMessage) => {
   if (ws.readyState === WebSocket.OPEN) {
@@ -25,4 +33,47 @@ export const send = (ws: WebSocket, data: ServerMessage) => {
 
 export const broadcast = (wss: WebSocket.Server, data: ServerMessage) => {
   wss.clients.forEach((ws) => send(ws, data));
+};
+
+export const rotate = <T>(player: Index, array: T[]): T[] => {
+  return [...array.slice(player), ...array.slice(0, player)];
+};
+
+export const rep = (n: Index, f: (i: Index) => any) => {
+  for (let i=0; i < n; ++i) {
+    f(i);
+  }
+}
+
+export const maskTilesSetData = (player: Index, tilesSetData: TilesSetData): TilesSetData => {
+  const rot = rotate(player, tilesSetData);
+  for (let i=1; i < rot.length; ++i) {
+    const e = rot[i];
+    if (Array.isArray(e)) {
+      rot[i] = e.length;
+    }
+  }
+  return rot;
+};
+
+const flatten = <T>(array: T[][]): T[] => {
+  return array.reduce((acc, val) => acc.concat(val), []);
+}
+
+const meldToTiles = (meld: Meld, showAll: boolean): Index[] => {
+  const tiles = meld.tiles.slice(0);
+  if (meld.hidden && !showAll) {
+    tiles.fill(-1);
+  }
+  return tiles;
+};
+
+export const meldTilesSetData = (player: Index, melds: Meld[][], showAll: boolean): TilesSetData => {
+  const rot = rotate(player, melds);
+  return rot.map((melds: Meld[], index) => {
+    console.log(melds);
+    const mapped = melds.map((meld) => meldToTiles(meld, showAll || index === 0));
+    console.log(mapped);
+    return flatten(mapped);
+  });
 };

@@ -1,8 +1,8 @@
 import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import {Game} from "./game";
-import {broadcast, send} from "./utils";
+import {Game} from './Game';
+import {broadcast, send} from './utils';
 
 const PORT = process.env.PORT ?? 9090;
 const app = express();
@@ -38,10 +38,6 @@ wss.on('connection', (ws: WebSocket) => {
   ws.on('message', (message: string) => {
     try {
       const data = JSON.parse(message);
-      console.log({
-        name: ws.protocol,
-        data,
-      });
       if (game) {
         game.onMessage(ws, data);
       }

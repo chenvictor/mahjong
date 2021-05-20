@@ -1,25 +1,17 @@
-type Index = any;
-
-export type StartData = {
-  position: Index;
-  names: string[];
-};
+import {Index} from "./shared/types";
 
 export type TilesSetData = Array<Index[] | number | null>;
 
-export type TilesAddData = Array<Index[] | null>;
-
-export type TilesRemData = boolean;
-
 export type ServerMessage = {
   alert?: string;
-  start?: StartData;
+  message?: string;
+  names?: string[];
+  discard?: Index;
   set_tiles?: TilesSetData;
-  add_tiles?: TilesAddData;
-  rem_tiles?: TilesRemData;
+  set_melds?: TilesSetData;
 }
 
-export enum MOVE {
+export enum Move {
   WIN,
   KONG,
   PONG,
@@ -29,7 +21,7 @@ export enum MOVE {
 }
 
 export type ClientMessage = {
-  move: MOVE;
+  move: Move;
   tiles: Index[];
 }
 

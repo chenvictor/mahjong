@@ -3,7 +3,7 @@ export const clamp = (val: number, min: number, max: number): number => Math.max
 export const getInput = (msg: string): string => {
   let input = null;
   while (!input) {
-    input = (prompt(msg) ?? '').trim();
+    input = (prompt(msg) ?? '').replace(/\s+/g, '');
   }
   return input;
 }

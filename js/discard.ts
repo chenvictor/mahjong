@@ -1,6 +1,7 @@
 import Konva from "konva";
-import {Index} from "./types";
 import {clamp} from "./utils";
+import {Index} from "../server/src/shared/types";
+import {TileImages} from "./TileImages";
 
 const ROTATION = 15;
 
@@ -15,27 +16,28 @@ export class Discard {
   private readonly layer: Konva.Layer;
   private readonly group: Konva.Group;
   private readonly config: DiscardConfig;
-  private readonly images: HTMLImageElement[];
+  private readonly images: TileImages;
   private prevImage: Konva.Image | null;
   private prevIndex: Index | null;
-  constructor(layer: Konva.Layer, config: DiscardConfig, images: HTMLImageElement[]) {
+  constructor(layer: Konva.Layer, config: DiscardConfig, images: TileImages) {
     this.layer = layer;
     this.group = new Konva.Group(config);
     this.config = config;
     this.images = images;
     this.prevImage = null;
     this.prevIndex = null;
-    this.group.add(new Konva.Rect({
-      stroke: 'black',
-      width: config.width,
-      height: config.height,
-    }));
     this.layer.add(this.group);
+    this.layer.draw();
+  }
+  public clear() {
+    this.group.destroyChildren();
+    this.prevImage = null;
+    this.prevIndex = null;
     this.layer.draw();
   }
   public push(tile: Index) {
     const image = new Konva.Image({
-      image: this.images[tile],
+      image: this.images.get(tile),
       scaleX: .5,
       scaleY: .5,
       x: Math.random()*this.config.width,

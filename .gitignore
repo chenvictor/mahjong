@@ -6,3 +6,4 @@ dist
 .cache
 .parcel-cache
 .idea
+yarn-error.log
