@@ -102,5 +102,5 @@ class WaitingState {
     }
 }
 exports.WaitingState = WaitingState;
-WaitingState.WAIT_MS = 5000;
+WaitingState.WAIT_MS = 3000;
 //# sourceMappingURL=WaitingState.js.map
