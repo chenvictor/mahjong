@@ -78,7 +78,6 @@ export const distribute = (n: number, tiles: Deque<Index>, start: Index): Set<In
   rep(n, (i) => {
     ret[mod(start+i, n)].add(tiles.popFront());
   });
-  ret[start].add(tiles.popFront());
   return ret;
 };
 
