@@ -6,11 +6,10 @@
   "license": "",
   "author": "",
   "scripts": {
-    "build": "parcel build index.html --public-url ./",
+    "build:client": "parcel build index.html --public-url ./",
     "dev": "parcel index.html --open",
-    "start": "npm run build && npm run dev",
-    "server:build": "tsc --build ./server/tsconfig.json",
-    "server:run": "node ./server/dist/server/server.js"
+    "build": "tsc --build ./server/tsconfig.json",
+    "start": "node ./server/dist/server/server.js"
   },
   "devDependencies": {
     "@parcel/packager-raw-url": "2.0.0-beta.2",
