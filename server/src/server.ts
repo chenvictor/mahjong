@@ -15,6 +15,12 @@ const wss = new WebSocket.Server({ server });
 
 let game: Game | null;
 
+const pingInterval = setInterval(() => {
+  wss.clients.forEach((ws: WebSocket) => {
+    ws.ping();
+  });
+}, 2000);
+
 wss.on('connection', (ws: WebSocket) => {
 
   if (wss.clients.size > 4) {
@@ -51,6 +57,10 @@ wss.on('connection', (ws: WebSocket) => {
     });
   });
 });
+
+wss.on('close', () => {
+  clearInterval(pingInterval);
+})
 
 //start our server
 server.listen(PORT, () => {
