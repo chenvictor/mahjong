@@ -7,6 +7,7 @@ import * as Tiles from './shared/Tiles';
 import {TurnState} from "./states/TurnState";
 import {WinState} from "./states/WinState";
 import {isSameValues, Meld} from "./Meld";
+import {WaitingState} from "./states/WaitingState";
 
 export class Game {
   private readonly wss: WebSocket.Server;
@@ -17,6 +18,7 @@ export class Game {
   private lastTile: Index | null;
   private handTiles: Set<Index>[];
   private meldTiles: Meld[][];
+  private wildcard: Index;
   // @ts-ignore
   private state: State;
   constructor(wss: WebSocket.Server) {
@@ -28,6 +30,7 @@ export class Game {
     this.turn = 0;
     this.handTiles = [];
     this.meldTiles = [];
+    this.wildcard = -1;
     this.state = new WinState(this);
   }
   public start(turn?: Index) {
@@ -54,10 +57,22 @@ export class Game {
       this.meldTiles.push([]);
     })
     this.broadcastTiles();
+    this.broadcast({
+      discard: null
+    });
+    /**
+     * Wildcard
+     */
+    const discardWild = this.tiles.popBack();
+    this.wildcard = Tiles.calculateWildcard(discardWild);
+    this.broadcast({
+      message: 'Wildcard shown',
+      discard: discardWild,
+    });
     /**
      * Initialize state
      */
-    this.setState(new TurnState(this, this.getTurn()));
+    this.setState(new WaitingState(this));
   }
   public onMessage(ws: WebSocket, message: ClientMessage) {
     const player = this.players.findIndex((player) => player === ws);
@@ -77,6 +92,17 @@ export class Game {
       const set_melds = meldTilesSetData(i, this.meldTiles, showAll);
       this.send(i, {set_melds});
     })
+  }
+  public noWildcards(player: Index, tiles: Index[]): boolean {
+    for (const tile of tiles) {
+      if (Tiles.getValue(tile) === this.wildcard) {
+        this.send(player, {
+          message: 'cannot discard wildcard'
+        });
+        return false;
+      }
+    }
+    return true;
   }
   discardTile(player: Index, tile: Index): boolean {
     if (!this.handTiles[player].has(tile)) {

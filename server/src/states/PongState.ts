@@ -35,12 +35,14 @@ export class PongState implements State {
     }
     switch (move) {
       case Move.HIT:
-        const meld = isSameValues([this.discarded, ...tiles], this.n);
-        if (meld !== null) {
-          this.game.addMeld(this.player, meld);
-          this.game.removeTiles(this.player, tiles);
-          this.game.undiscardTile();
-          this.afterMeld();
+        if (this.game.noWildcards(player, tiles)) {
+          const meld = isSameValues([this.discarded, ...tiles], this.n);
+          if (meld !== null) {
+            this.game.addMeld(this.player, meld);
+            this.game.removeTiles(this.player, tiles);
+            this.game.undiscardTile();
+            this.afterMeld();
+          }
         }
         break;
     }

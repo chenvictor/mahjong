@@ -23,6 +23,7 @@ export class UI {
   public meldTiles: TilesUI[];
   public discard: Discard;
   public menu: Menu;
+  private readonly names: Konva.Group;
   private constructor(containerId: string, images: TileImages, scale: number) {
     this.images = images;
     this.stage = new Konva.Stage({
@@ -36,6 +37,8 @@ export class UI {
     this.tilesLayer = new Konva.Layer();
     this.handLayer = new Konva.Layer();
     this.menuLayer = new Konva.Layer();
+    this.names = new Konva.Group();
+    this.menuLayer.add(this.names);
     this.stage.add(this.backgroundLayer);
     this.stage.add(this.tilesLayer);
     this.stage.add(this.handLayer);
@@ -130,5 +133,37 @@ export class UI {
     this.discard.clear();
     this.handTiles.forEach((tiles) => tiles.setTiles(0));
     this.meldTiles.forEach((tiles) => tiles.setTiles(0));
+  }
+  setNames(names?: string[]) {
+    if (names === undefined) return;
+    this.names.destroyChildren();
+    const props = [
+      {
+        x: WIDTH/2,
+        y: HEIGHT-300,
+      },
+      {
+        x: WIDTH-300,
+        y: HEIGHT/2,
+      },
+      {
+        x: WIDTH/2,
+        y: 300,
+      },
+      {
+        x: 300,
+        y: HEIGHT/2,
+      }
+    ];
+    names.forEach((name, index) => {
+      const text = new Konva.Text({
+        text: name,
+        align: 'center',
+        fontSize: 24,
+        ...props[index],
+      });
+      this.names.add(text);
+    });
+    this.menuLayer.draw();
   }
 }

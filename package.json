@@ -6,7 +6,7 @@
   "license": "",
   "author": "",
   "scripts": {
-    "build:client": "parcel build index.html --public-url ./",
+    "build:client": "parcel build index.html --dist-dir ./docs --public-url ./",
     "dev": "parcel index.html --open",
     "build": "tsc --build ./server/tsconfig.json",
     "start": "node ./server/dist/server/server.js"

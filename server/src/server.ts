@@ -19,7 +19,7 @@ wss.on('connection', (ws: WebSocket) => {
 
   if (wss.clients.size > 4) {
     send(ws, {
-      alert: 'server full',
+      full: true,
     });
     ws.terminate();
     return;
@@ -31,9 +31,7 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   // TODO game start condition
-  if (true || wss.clients.size === 4) {
-    game = new Game(wss);
-  }
+  game = new Game(wss);
 
   ws.on('message', (message: string) => {
     try {
@@ -51,10 +49,6 @@ wss.on('connection', (ws: WebSocket) => {
     console.log('Disconnected:', {
       name: ws.protocol,
     });
-    broadcast(wss, {
-      alert: 'someone disconnected',
-    });
-    wss.clients.forEach((ws) => ws.terminate());
   });
 });
 

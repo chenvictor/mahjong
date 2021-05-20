@@ -12,6 +12,22 @@ export enum TileType {
   SEASONS = 38,
 }
 
+const typeSize = (type: TileType): number => {
+  switch(type) {
+    case TileType.DOTS:
+    case TileType.BAMBOO:
+    case TileType.CHARACTERS:
+      return 9;
+    case TileType.WINDS:
+      return 4;
+    case TileType.DRAGONS:
+      return 3;
+    case TileType.FLOWERS:
+    case TileType.SEASONS:
+      return 4;
+  }
+}
+
 const NUM_TILES = 42;
 
 export const getType = (tile: Index): TileType => {
@@ -65,3 +81,16 @@ export const distribute = (n: number, tiles: Deque<Index>, start: Index): Set<In
   ret[start].add(tiles.popFront());
   return ret;
 };
+
+export const calculateWildcard = (tile: Index): Index => {
+  const value = getValue(tile);
+  let type = getType(tile);
+  let size = typeSize(type);
+  if (type === TileType.DRAGONS) {
+    type = TileType.WINDS;
+    size = 7;
+  }
+  const index = value - type;
+  const nIndex = (index + 1) % size;
+  return type + nIndex;
+}

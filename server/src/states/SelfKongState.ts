@@ -25,23 +25,25 @@ export class SelfKongState implements State {
         this.game.setState(new TurnState(this.game, this.player));
         break;
       case Move.HIT:
-        let kong: Meld | null = null;
-        if (tiles.length === 1) {
-          // pong => kong meld
-          kong = this.game.extractMeldKong(this.player, tiles[0]);
-        } else {
-          // hidden kong
-          kong = isSameValues(tiles, 4);
-          if (kong !== null) {
-            kong.hidden = true;
+        if (this.game.noWildcards(player, tiles)) {
+          let kong: Meld | null = null;
+          if (tiles.length === 1) {
+            // pong => kong meld
+            kong = this.game.extractMeldKong(this.player, tiles[0]);
+          } else {
+            // hidden kong
+            kong = isSameValues(tiles, 4);
+            if (kong !== null) {
+              kong.hidden = true;
+            }
           }
+          if (kong === null) break;
+          this.game.addMeld(this.player, kong);
+          this.game.removeTiles(this.player, tiles);
+          const tile = this.game.tiles.popBack();
+          this.game.drawTile(this.player, tile);
+          this.game.setState(new TurnState(this.game, this.player));
         }
-        if (kong === null) break;
-        this.game.addMeld(this.player, kong);
-        this.game.removeTiles(this.player, tiles);
-        const tile = this.game.tiles.popBack();
-        this.game.drawTile(this.player, tile);
-        this.game.setState(new TurnState(this.game, this.player));
         break;
     }
   }

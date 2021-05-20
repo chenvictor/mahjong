@@ -1,20 +1,8 @@
 import {UI} from './UI';
 import {openSocket} from "./socket";
-import {getInput, sleep} from "./utils";
 import {ClientMessage, Move, ServerMessage, TilesSetData} from "../server/src/events";
 import {Index} from "../server/src/shared/types";
-
-const connect = async (url: string | null, name: string) => {
-  let server = null;
-  while (server === null) {
-    try {
-      server = await openSocket(url ?? getInput('Enter ws(s) url'), name);
-    } catch {
-      alert('Could not connect.');
-    }
-  }
-  return server;
-};
+import {cleanInput} from "./utils";
 
 class GameLogic {
   private readonly ui: UI;
@@ -48,9 +36,11 @@ class GameLogic {
       }
     }
   }
-  private discardTile(tile?: Index) {
+  private discardTile(tile?: Index | null) {
     if (tile === undefined) return;
-    if (tile === -1) {
+    if (tile === null) {
+      this.ui.discard.clear();
+    } else if (tile === -1) {
       this.ui.discard.pop();
     } else {
       this.ui.discard.push(tile);
@@ -91,18 +81,21 @@ class GameLogic {
         handler: () => this.sendMove(Move.HIT),
       }
     ]);
-    return new Promise((resolve) => {
-      this.server.onclose = () => resolve();
+    return new Promise((_resolve, reject) => {
+      this.server.onclose = () => reject('Connection closed');
       this.server.onerror = () => this.server.close();
       this.server.onmessage = (event) => {
         try {
           const message: ServerMessage = JSON.parse(event.data);
-          this.onAlert(message.alert);
+          if (message.full) {
+            this.onAlert('Server Full');
+          }
           this.setTiles(message.set_tiles);
           this.discardTile(message.discard);
           if (message.message) {
             this.ui.menu.showMessage(message.message);
           }
+          this.ui.setNames(message.names);
           this.setMelds(message.set_melds);
         } catch {
           console.log('could not parse:', event.data);
@@ -114,33 +107,32 @@ class GameLogic {
 }
 
 (async () => {
-  const name = getInput('Enter a name');
-  const url = null; //'ws://localhost:9090';
   const ui = await UI.create('container');
-
-  const run = async () => {
-    const server = await connect(url || getInput('Enter ws(s) url'), name);
-    await (new GameLogic(ui, server)).run();
-  }
-
-  /**
-   * Debug functions
-   */
-  (<any>window).discardRandom = () => {
-    const tile = Math.floor(Math.random()*42);
-    ui.discard.push(tile);
-  }
-  (<any>window).discardPop = () => {
-    ui.discard.pop();
-  }
-  (<any>window).addTile = (player: Index, tile: Index) => {
-    ui.handTiles[player].addTile(tile);
-  }
-  (<any>window).ui = ui;
-
-  while(1) {
-    await run();
-    await sleep(2000);
+  // @ts-ignore
+  const modal = new bootstrap.Modal(document.getElementById('joinModal'), {
+    keyboard: false,
+    backdrop: 'static',
+  });
+  modal.show();
+  const form = <HTMLFormElement>document.querySelector('form');
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const name = cleanInput(<string>data.get('name'));
+    const url = <string>data.get('url');
+    if (!name || !url) {
+      return;
+    }
+    openSocket(url, name).then((ws) => {
+      modal.hide();
+      return (new GameLogic(ui, ws)).run();
+    }).catch((reason) => {
+      if (reason) {
+        alert(reason);
+      }
+    }).finally(() => {
+      modal.show();
+    });
   }
 })();
 
