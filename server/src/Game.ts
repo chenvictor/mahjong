@@ -56,6 +56,7 @@ export class Game {
       this.meldTiles.push([]);
     })
     this.broadcastTiles();
+    this.broadcastMelds();
     this.broadcast({
       discard: null
     });
