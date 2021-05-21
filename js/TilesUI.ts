@@ -74,23 +74,27 @@ export class TilesUI {
       this.initHoverEvents();
     }
   }
-  public setTiles(tiles: number | Index[]) {
+  public setTiles(tiles: number | Index[], exact: boolean = false) {
     if (typeof tiles === 'number') {
       this.group.destroyChildren();
       tiles = Array(tiles).fill(Tiles.BACK);
     } else {
-      const tileSet = new Set(tiles);
-      const remIndices: Index = [];
-      this.group.children.each((child) => {
-        // @ts-ignore
-        const tile: Index = child.getAttr(ATTR_TILE);
-        if (!tileSet.has(tile)) {
-          remIndices.push(child.getAttr(ATTR_INDEX));
-        }
-        tileSet.delete(tile);
-      });
-      this.removeTiles(remIndices);
-      tiles = Array.from(tileSet);
+      if (exact) {
+        this.group.destroyChildren();
+      } else {
+        const tileSet = new Set(tiles);
+        const remIndices: Index = [];
+        this.group.children.each((child) => {
+          // @ts-ignore
+          const tile: Index = child.getAttr(ATTR_TILE);
+          if (!tileSet.has(tile)) {
+            remIndices.push(child.getAttr(ATTR_INDEX));
+          }
+          tileSet.delete(tile);
+        });
+        this.removeTiles(remIndices);
+        tiles = Array.from(tileSet);
+      }
     }
     tiles.forEach((tile) => {
       this.addTile(tile, false);

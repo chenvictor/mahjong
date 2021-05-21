@@ -40,7 +40,7 @@ export class MeldState implements State {
     switch (move) {
       case Move.HIT:
         if (this.game.noWildcards(player, tiles)) {
-          const meld = this.makeMeld(tiles, true);
+          const meld = this.makeMeld([...tiles, this.discarded], true);
           if (meld !== null) {
             this.game.addMeld(this.player, meld);
             this.game.removeTiles(this.player, tiles);

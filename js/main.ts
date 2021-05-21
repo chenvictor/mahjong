@@ -32,9 +32,7 @@ class GameLogic {
     for (let i=0; i < data.length; ++i) {
       const e = data[i];
       if (e !== null) {
-        // clear tiles first, because KONG tiles may show up as hidden
-        this.ui.meldTiles[i].setTiles([]);
-        this.ui.meldTiles[i].setTiles(e);
+        this.ui.meldTiles[i].setTiles(e, true);
       }
     }
   }
@@ -136,5 +134,7 @@ class GameLogic {
       modal.show();
     });
   }
+  // Expose for debuggin
+  (<any>window).ui = ui;
 })();
 

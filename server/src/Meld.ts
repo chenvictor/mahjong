@@ -83,7 +83,9 @@ export class KongMeld extends Meld {
   }
   public toTiles(visible: boolean): Index[] {
     const ret = super.toTiles(visible);
-    ret[0] = ret[3] = Tiles.BACK;
+    if (!this.exposed) {
+      ret[0] = ret[3] = Tiles.BACK;
+    }
     return ret;
   }
 }
