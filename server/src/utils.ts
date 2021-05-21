@@ -1,9 +1,9 @@
-// See: https://stackoverflow.com/a/12646864
 import * as WebSocket from "ws";
 import {ServerMessage, TilesSetData} from "./events";
 import {Index} from "./shared/types";
 import {Meld} from "./Meld";
 
+// See: https://stackoverflow.com/a/12646864
 export const shuffle = (array: any[]) => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -58,22 +58,16 @@ export const maskTilesSetData = (player: Index, tilesSetData: TilesSetData): Til
 
 const flatten = <T>(array: T[][]): T[] => {
   return array.reduce((acc, val) => acc.concat(val), []);
-}
+};
 
-const meldToTiles = (meld: Meld, showAll: boolean): Index[] => {
-  const tiles = meld.tiles.slice(0);
-  if (meld.hidden && !showAll) {
-    tiles.fill(-1);
-  }
-  return tiles;
+export const unique = <T>(array: T[]): T[] => {
+  return Array.from(new Set(array));
 };
 
 export const meldTilesSetData = (player: Index, melds: Meld[][], showAll: boolean): TilesSetData => {
   const rot = rotate(player, melds);
   return rot.map((melds: Meld[], index) => {
-    console.log(melds);
-    const mapped = melds.map((meld) => meldToTiles(meld, showAll || index === 0));
-    console.log(mapped);
+    const mapped = melds.map((meld) => meld.toTiles(showAll || index === 0));
     return flatten(mapped);
   });
 };

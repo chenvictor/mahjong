@@ -4,10 +4,9 @@ import {ClientMessage, Move, ServerMessage} from './events';
 import {Deque} from './deque';
 import {Index} from './shared/types';
 import * as Tiles from './shared/Tiles';
-import {TurnState} from "./states/TurnState";
 import {WinState} from "./states/WinState";
-import {isSameValues, Meld} from "./Meld";
 import {WaitingState} from "./states/WaitingState";
+import {MeldType, Meld} from "./Meld";
 
 export class Game {
   private readonly wss: WebSocket.Server;
@@ -134,16 +133,16 @@ export class Game {
     this.meldTiles[player].push(meld);
     this.broadcastMelds();
   }
-  extractMeldKong(player: Index, tile: Index): Meld | null {
+  exposedPongToKong(player: Index, tile: Index): boolean {
+    const value = Tiles.getValue(tile);
     for(let i = 0; i < this.meldTiles[player].length; i++) {
-      const tiles = [tile, ...this.meldTiles[player][i].tiles];
-      const meld = isSameValues(tiles, 4);
+      const meld = Meld.makeKong([...this.meldTiles[player][i].getRawTiles(), tile], true);
       if (meld !== null) {
-        this.meldTiles[player].splice(i, 1);
-        return meld;
+        this.meldTiles[player][i] = meld;
+        return true;
       }
     }
-    return null;
+    return false;
   }
   drawTile(player: Index, tile: Index) {
     this.handTiles[player].add(tile);

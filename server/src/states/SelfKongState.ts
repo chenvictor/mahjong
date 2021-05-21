@@ -5,12 +5,12 @@ import {Index} from "../shared/types";
 import {Game, State} from "../Game";
 import {Move} from "../events";
 import {TurnState} from "./TurnState";
-import {isSameValues, Meld} from "../Meld";
+import {Meld} from "../Meld";
 
 export class SelfKongState implements State {
   private readonly game: Game;
   private readonly player: Index;
-  constructor(game: Game, player: Index, n: number = 3) {
+  constructor(game: Game, player: Index) {
     this.game = game;
     this.player = player;
     game.broadcast({
@@ -26,19 +26,19 @@ export class SelfKongState implements State {
         break;
       case Move.HIT:
         if (this.game.noWildcards(player, tiles)) {
-          let kong: Meld | null = null;
           if (tiles.length === 1) {
             // pong => kong meld
-            kong = this.game.extractMeldKong(this.player, tiles[0]);
+            if (!this.game.exposedPongToKong(this.player, tiles[0])) {
+              return;
+            }
           } else {
             // hidden kong
-            kong = isSameValues(tiles, 4);
-            if (kong !== null) {
-              kong.hidden = true;
+            const kong = Meld.makeKong(tiles, false);
+            if (kong === null) {
+              return;
             }
+            this.game.addMeld(player, kong);
           }
-          if (kong === null) break;
-          this.game.addMeld(this.player, kong);
           this.game.removeTiles(this.player, tiles);
           const tile = this.game.tiles.popBack();
           this.game.drawTile(this.player, tile);

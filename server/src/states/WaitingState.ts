@@ -3,9 +3,10 @@ import {Index} from "../shared/types";
 import {mod} from "../utils";
 import {Game, State} from "../Game";
 import {TurnState} from "./TurnState";
-import {PongState} from "./PongState";
+import {MeldState} from "./MeldState";
 import {WinState} from "./WinState";
 import {KongState} from "./KongState";
+import {MeldType, Meld} from "../Meld";
 
 const MOVE_NONE = (move: Move) => move === Move.NONE;
 
@@ -60,7 +61,7 @@ export class WaitingState implements State {
         this.game.setState(new TurnState(this.game, nextPlayer));
         break;
       case Move.PONG:
-        this.game.setState(new PongState(this.game, nextPlayer));
+        this.game.setState(new MeldState(this.game, nextPlayer, Meld.makePong, Move.PONG, MeldType.PONG));
         break;
       case Move.KONG:
         this.game.setState(new KongState(this.game, nextPlayer));

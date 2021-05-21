@@ -59,7 +59,7 @@ export class TileImages {
     this.images = images;
   }
   public get(tile: Index) {
-    if (tile === -1) {
+    if (tile === Tiles.BACK) {
       return this.images[42];
     }
     return this.images[Tiles.getValue(tile)];

@@ -93,3 +93,5 @@ export const calculateWildcard = (tile: Index): Index => {
   const nIndex = (index + 1) % size;
   return type + nIndex;
 }
+
+export const BACK = -1;

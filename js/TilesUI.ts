@@ -1,6 +1,7 @@
 import Konva from "konva";
 import {clamp} from "./utils";
 import {TileImages} from "./TileImages";
+import * as Tiles from '../server/src/shared/Tiles';
 
 const HAND_TILE_SPACING = 110;
 const HOVER_OFFSET = 5;
@@ -76,7 +77,7 @@ export class TilesUI {
   public setTiles(tiles: number | Index[]) {
     if (typeof tiles === 'number') {
       this.group.destroyChildren();
-      tiles = Array(tiles).fill(-1);
+      tiles = Array(tiles).fill(Tiles.BACK);
     } else {
       const tileSet = new Set(tiles);
       const remIndices: Index = [];

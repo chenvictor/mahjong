@@ -2,20 +2,24 @@ import {Game, State} from "../Game";
 import {Index} from "../shared/types";
 import {Move} from "../events";
 import {DiscardState} from "./DiscardState";
-import {isSameValues, Meld} from "../Meld";
 import {WaitingState} from "./WaitingState";
+import {MeldType, Meld} from "../Meld";
 
-export class PongState implements State {
+type MeldFunction = (tiles: Index[], exposed: boolean) => Meld | null;
+
+export class MeldState implements State {
   protected readonly game: Game;
   protected readonly player: Index;
   private readonly discarded: Index;
-  private readonly n: number;
+  private readonly makeMeld: MeldFunction;
   private readonly cancelMove: Move;
-  constructor(game: Game, player: Index, n: number = 3, cancelMove: Move = Move.PONG) {
+  private readonly meldType: MeldType;
+  constructor(game: Game, player: Index, makeMeld: MeldFunction, cancelMove: Move, meldType: MeldType) {
     this.game = game;
     this.player = player;
-    this.n = n;
+    this.makeMeld = makeMeld;
     this.cancelMove = cancelMove;
+    this.meldType = meldType;
     game.broadcast({
       message: this.string()
     });
@@ -36,7 +40,7 @@ export class PongState implements State {
     switch (move) {
       case Move.HIT:
         if (this.game.noWildcards(player, tiles)) {
-          const meld = isSameValues([this.discarded, ...tiles], this.n);
+          const meld = this.makeMeld(tiles, true);
           if (meld !== null) {
             this.game.addMeld(this.player, meld);
             this.game.removeTiles(this.player, tiles);
@@ -48,6 +52,6 @@ export class PongState implements State {
     }
   }
   string() {
-    return `${this.game.getPlayerName(this.player)} pong`;
+    return `${this.game.getPlayerName(this.player)} ${this.meldType}`;
   }
 }
