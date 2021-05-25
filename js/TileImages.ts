@@ -1,4 +1,4 @@
-import {Index} from "../server/src/shared/types";
+import {Index} from '../server/src/shared/types';
 import * as Tiles from '../server/src/shared/Tiles';
 
 const URLS = [
@@ -49,21 +49,24 @@ const URLS = [
   'https://upload.wikimedia.org/wikipedia/commons/b/b3/MJh6-.svg',
   'https://upload.wikimedia.org/wikipedia/commons/b/b6/MJh7-.svg',
   'https://upload.wikimedia.org/wikipedia/commons/9/9c/MJh8-.svg',
-  require('url:../img/tile-back.svg')
+  require('url:../img/tile-back.svg'),
 ];
 
 
 export class TileImages {
   private readonly images: HTMLImageElement[];
+
   private constructor(images: HTMLImageElement[]) {
     this.images = images;
   }
+
   public get(tile: Index) {
     if (tile === Tiles.BACK) {
       return this.images[42];
     }
     return this.images[Tiles.getValue(tile)];
   }
+
   static load(): Promise<TileImages> {
     return Promise.all<HTMLImageElement>(URLS.map((url) => new Promise((resolve) => {
       const imageObj = new Image();

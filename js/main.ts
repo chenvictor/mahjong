@@ -1,41 +1,47 @@
 import {UI} from './UI';
-import {openSocket} from "./socket";
-import {ClientMessage, Move, ServerMessage, TilesSetData} from "../server/src/events";
-import {Index} from "../server/src/shared/types";
-import {cleanInput} from "./utils";
+import {openSocket} from './socket';
+import {ClientMessage, Move, ServerMessage, TilesSetData} from '../server/src/events';
+import {Index} from '../server/src/shared/types';
+import {cleanInput} from './utils';
 
 class GameLogic {
   private readonly ui: UI;
   private readonly server: WebSocket;
+
   constructor(ui: UI, server: WebSocket) {
     this.ui = ui;
     this.server = server;
   }
+
   private send(message: ClientMessage) {
     this.server.send(JSON.stringify(message));
   }
+
   private onAlert(message?: string) {
     if (message === undefined) return;
     alert(`SERVER: ${message}`);
   }
+
   private setTiles(data?: TilesSetData) {
     if (data === undefined) return;
-    for (let i=0; i < data.length; ++i) {
+    for (let i = 0; i < data.length; ++i) {
       const e = data[i];
       if (e !== null) {
         this.ui.handTiles[i].setTiles(e);
       }
     }
   }
+
   private setMelds(data?: TilesSetData) {
     if (data === undefined) return;
-    for (let i=0; i < data.length; ++i) {
+    for (let i = 0; i < data.length; ++i) {
       const e = data[i];
       if (e !== null) {
         this.ui.meldTiles[i].setTiles(e, true);
       }
     }
   }
+
   private discardTile(tile?: Index | null) {
     if (tile === undefined) return;
     if (tile === null) {
@@ -46,12 +52,14 @@ class GameLogic {
       this.ui.discard.push(tile);
     }
   }
+
   private sendMove(move: Move) {
     this.send({
       move,
-      tiles: this.ui.handTiles[0].getSelected()
+      tiles: this.ui.handTiles[0].getSelected(),
     });
   }
+
   run(): Promise<void> {
     this.ui.clearTiles();
     this.ui.menu.setButtons([
@@ -79,7 +87,7 @@ class GameLogic {
         text: '打',
         color: 'black',
         handler: () => this.sendMove(Move.HIT),
-      }
+      },
     ]);
     return new Promise((_resolve, reject) => {
       this.server.onclose = () => reject('Connection closed');
@@ -133,8 +141,8 @@ class GameLogic {
     }).finally(() => {
       modal.show();
     });
-  }
-  // Expose for debuggin
+  };
+  // Exposed for debugging
   (<any>window).ui = ui;
 })();
 

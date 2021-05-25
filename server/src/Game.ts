@@ -4,9 +4,9 @@ import {ClientMessage, Move, ServerMessage} from './events';
 import {Deque} from './deque';
 import {Index} from './shared/types';
 import * as Tiles from './shared/Tiles';
-import {WinState} from "./states/WinState";
-import {WaitingState} from "./states/WaitingState";
-import {MeldType, Meld} from "./Meld";
+import {WinState} from './states/WinState';
+import {WaitingState} from './states/WaitingState';
+import {Meld} from './Meld';
 
 export class Game {
   private readonly wss: WebSocket.Server;
@@ -20,6 +20,7 @@ export class Game {
   private wildcard: Index;
   // @ts-ignore
   private state: State;
+
   constructor(wss: WebSocket.Server) {
     this.wss = wss;
     this.players = shuffle([...wss.clients]);
@@ -32,6 +33,7 @@ export class Game {
     this.wildcard = -1;
     this.state = new WinState(this);
   }
+
   public start(turn?: Index) {
     if (turn !== undefined) {
       this.turn = turn;
@@ -43,7 +45,7 @@ export class Game {
     rep(this.nplayers, (i) => {
       names.push(this.getPlayerName(i));
     });
-    for (let player=0; player < this.nplayers; player++) {
+    for (let player = 0; player < this.nplayers; player++) {
       this.send(player, {names: rotate(player, names)});
     }
     /**
@@ -54,11 +56,11 @@ export class Game {
     this.meldTiles = [];
     rep(this.nplayers, () => {
       this.meldTiles.push([]);
-    })
+    });
     this.broadcastTiles();
     this.broadcastMelds();
     this.broadcast({
-      discard: null
+      discard: null,
     });
     /**
      * Wildcard
@@ -74,12 +76,14 @@ export class Game {
      */
     this.setState(new WaitingState(this));
   }
+
   public onMessage(ws: WebSocket, message: ClientMessage) {
     const player = this.players.findIndex((player) => player === ws);
     if (this.state.onMove) {
       this.state.onMove(player, message.move, message.tiles);
     }
   }
+
   public broadcastTiles(showAll: boolean = false) {
     const tiles = this.handTiles.map((set) => [...set]);
     rep(this.nplayers, (i) => {
@@ -87,23 +91,26 @@ export class Game {
       this.send(i, {set_tiles});
     });
   }
+
   public broadcastMelds(showAll: boolean = false) {
     rep(this.nplayers, (i) => {
       const set_melds = meldTilesSetData(i, this.meldTiles, showAll);
       this.send(i, {set_melds});
-    })
+    });
   }
+
   public noWildcards(player: Index, tiles: Index[]): boolean {
     for (const tile of tiles) {
       if (Tiles.getValue(tile) === this.wildcard) {
         this.send(player, {
-          message: 'cannot discard wildcard'
+          message: 'cannot discard wildcard',
         });
         return false;
       }
     }
     return true;
   }
+
   discardTile(player: Index, tile: Index): boolean {
     if (!this.handTiles[player].has(tile)) {
       return false;
@@ -116,27 +123,30 @@ export class Game {
     });
     return true;
   }
+
   removeTiles(player: Index, tiles: Index[]) {
     tiles.forEach((tile) => {
       this.handTiles[player].delete(tile);
     });
     this.broadcastTiles();
   }
+
   undiscardTile() {
     if (this.lastTile !== null) {
       this.lastTile = null;
       this.broadcast({
-        discard: -1
+        discard: -1,
       });
     }
   }
+
   addMeld(player: Index, meld: Meld) {
     this.meldTiles[player].push(meld);
     this.broadcastMelds();
   }
+
   exposedPongToKong(player: Index, tile: Index): boolean {
-    const value = Tiles.getValue(tile);
-    for(let i = 0; i < this.meldTiles[player].length; i++) {
+    for (let i = 0; i < this.meldTiles[player].length; i++) {
       const meld = Meld.makeKong([...this.meldTiles[player][i].getRawTiles(), tile], true);
       if (meld !== null) {
         this.meldTiles[player][i] = meld;
@@ -145,46 +155,51 @@ export class Game {
     }
     return false;
   }
+
   drawTile(player: Index, tile: Index) {
     this.handTiles[player].add(tile);
     this.broadcastTiles();
   }
+
   send(player: Index, message: ServerMessage) {
     send(this.players[player], message);
   }
+
   broadcast(message: ServerMessage) {
     broadcast(this.wss, message);
   }
+
   setState(state: State) {
     this.state = state;
     console.log(`state: ${state.string()}`);
   }
+
   getTurn() {
     return this.turn;
   }
+
   setTurn(turn: Index) {
     this.turn = mod(turn, this.nplayers);
   }
+
   incrementTurn() {
     this.setTurn(this.getTurn() + 1);
   }
+
   hasDiscard() {
     return this.lastTile !== null;
   }
+
   getDiscard() {
     return this.lastTile;
   }
+
   getPlayerName(player: Index) {
     return `[${player}]: ${this.players[player].protocol}`;
   }
 }
 
 export interface State {
-  onMove?:  (player: Index, move: Move, tiles: Index[]) => void;
-  string:   () => string;
+  onMove?: (player: Index, move: Move, tiles: Index[]) => void;
+  string: () => string;
 }
-
-const DummyState: State = {
-  string: () => 'dummy'
-};
-

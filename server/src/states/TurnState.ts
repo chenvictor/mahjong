@@ -4,24 +4,26 @@
  * - win
  * - kong
  */
-import {Game, State} from "../Game";
-import {Index} from "../shared/types";
-import {Move} from "../events";
-import {DiscardState} from "./DiscardState";
-import {WinState} from "./WinState";
-import {SelfKongState} from "./SelfKongState";
+import {Game, State} from '../Game';
+import {Index} from '../shared/types';
+import {Move} from '../events';
+import {DiscardState} from './DiscardState';
+import {WinState} from './WinState';
+import {SelfKongState} from './SelfKongState';
 
 export class TurnState implements State {
   private readonly game: Game;
   private readonly player: Index;
+
   constructor(game: Game, player: Index) {
     this.game = game;
     this.player = player;
     game.broadcast({
-      message: this.string()
+      message: this.string(),
     });
   }
-  onMove(player: Index, move: Move, tiles: Index[]) {
+
+  onMove(player: Index, move: Move, _tiles: Index[]) {
     if (player !== this.player) return;
     switch (move) {
       case Move.HIT:
@@ -35,6 +37,7 @@ export class TurnState implements State {
         break;
     }
   }
+
   string() {
     return `${this.game.getPlayerName(this.player)}'s turn`;
   }

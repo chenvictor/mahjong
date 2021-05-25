@@ -1,12 +1,12 @@
-import {Move} from "../events";
-import {Index} from "../shared/types";
-import {mod} from "../utils";
-import {Game, State} from "../Game";
-import {TurnState} from "./TurnState";
-import {MeldState} from "./MeldState";
-import {WinState} from "./WinState";
-import {KongState} from "./KongState";
-import {MeldType, Meld} from "../Meld";
+import {Move} from '../events';
+import {Index} from '../shared/types';
+import {mod} from '../utils';
+import {Game, State} from '../Game';
+import {TurnState} from './TurnState';
+import {MeldState} from './MeldState';
+import {WinState} from './WinState';
+import {KongState} from './KongState';
+import {MeldType, Meld} from '../Meld';
 
 const MOVE_NONE = (move: Move) => move === Move.NONE;
 
@@ -21,6 +21,7 @@ export class WaitingState implements State {
   private readonly game: Game;
   private readonly moves: Move[];
   private timeout: NodeJS.Timeout | null;
+
   constructor(game: Game) {
     this.game = game;
     this.moves = Array(game.nplayers).fill(Move.NONE);
@@ -31,6 +32,7 @@ export class WaitingState implements State {
       }
     }, WaitingState.WAIT_MS);
   }
+
   private next() {
     if (this.timeout !== null) {
       clearTimeout(this.timeout);
@@ -73,16 +75,19 @@ export class WaitingState implements State {
         break;
     }
   }
+
   private set(player: Index, move: Move) {
     this.moves[player] = move;
     if (this.timeout === null || !this.moves.some(MOVE_NONE)) {
       this.next();
     }
   }
+
   private shouldEnd(move: Move) {
     return this.game.tiles.getSize() === 0 && move !== Move.WIN;
   }
-  onMove(player: Index, move: Move, tiles: Index[]) {
+
+  onMove(player: Index, move: Move, _tiles: Index[]) {
     if (this.shouldEnd(move)) return;
     switch (move) {
       case Move.WIN:
@@ -103,6 +108,7 @@ export class WaitingState implements State {
         break;
     }
   }
+
   string() {
     return 'waiting for players to choose next action';
   }

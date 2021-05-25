@@ -1,22 +1,24 @@
 /**
  * Either a hidden, or a 3+1 kong
  */
-import {Index} from "../shared/types";
-import {Game, State} from "../Game";
-import {Move} from "../events";
-import {TurnState} from "./TurnState";
-import {Meld} from "../Meld";
+import {Index} from '../shared/types';
+import {Game, State} from '../Game';
+import {Move} from '../events';
+import {TurnState} from './TurnState';
+import {Meld} from '../Meld';
 
 export class SelfKongState implements State {
   private readonly game: Game;
   private readonly player: Index;
+
   constructor(game: Game, player: Index) {
     this.game = game;
     this.player = player;
     game.broadcast({
-      message: this.string()
+      message: this.string(),
     });
   }
+
   onMove(player: Index, move: Move, tiles: Index[]) {
     if (player !== this.player) return;
     switch (move) {
@@ -47,6 +49,7 @@ export class SelfKongState implements State {
         break;
     }
   }
+
   string() {
     return `${this.game.getPlayerName(this.player)} kong`;
   }

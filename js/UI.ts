@@ -6,7 +6,7 @@ import Konva from 'konva';
 import {TilesUI} from './TilesUI';
 import {Menu, MESSAGE_SIZE} from './menu';
 import {Discard} from './discard';
-import {TileImages} from "./TileImages";
+import {TileImages} from './TileImages';
 
 const WIDTH = 2000, HEIGHT = 1200, PAD = 10;
 
@@ -24,12 +24,13 @@ export class UI {
   public discard: Discard;
   public menu: Menu;
   private readonly names: Konva.Group;
+
   private constructor(containerId: string, images: TileImages, scale: number) {
     this.images = images;
     this.stage = new Konva.Stage({
       container: containerId,
-      width: WIDTH*scale,
-      height: HEIGHT*scale,
+      width: WIDTH * scale,
+      height: HEIGHT * scale,
       scaleX: scale,
       scaleY: scale,
     });
@@ -56,29 +57,29 @@ export class UI {
         scaleX: scaleOther,
         scaleY: scaleOther,
       };
-      const PAD_TB = 2*tileHeight*scaleOther + PAD;
-      const PAD_LR = tileWidth*scaleOther + PAD;
+      const PAD_TB = 2 * tileHeight * scaleOther + PAD;
+      const PAD_LR = tileWidth * scaleOther + PAD;
       this.meldTiles = [
         new TilesUI(this.handLayer, {
           x: PAD_TB + PAD,
-          y: HEIGHT - tileHeight - 2*PAD - tileHeight*scaleOther,
+          y: HEIGHT - tileHeight - 2 * PAD - tileHeight * scaleOther,
           scaleX: scaleOther,
           scaleY: scaleOther,
         }, this.images),
         new TilesUI(this.tilesLayer, {
-          x: WIDTH - 2*(tileHeight*scaleOther + PAD),
+          x: WIDTH - 2 * (tileHeight * scaleOther + PAD),
           y: HEIGHT - PAD_LR - PAD,
           rotation: 270,
           ...configOther,
         }, this.images),
         new TilesUI(this.tilesLayer, {
           x: WIDTH - PAD_TB - PAD,
-          y: 2*PAD + tileHeight + tileHeight*scaleOther,
+          y: 2 * PAD + tileHeight + tileHeight * scaleOther,
           rotation: 180,
           ...configOther,
         }, this.images),
         new TilesUI(this.tilesLayer, {
-          x: 2*(tileHeight*scaleOther + PAD),
+          x: 2 * (tileHeight * scaleOther + PAD),
           y: PAD_LR + PAD,
           rotation: 90,
           ...configOther,
@@ -92,7 +93,7 @@ export class UI {
           selectable: true,
         }, this.images),
         new TilesUI(this.tilesLayer, {
-          x: WIDTH - tileHeight*scaleOther - PAD,
+          x: WIDTH - tileHeight * scaleOther - PAD,
           y: HEIGHT - PAD_LR - PAD,
           rotation: 270,
           ...configOther,
@@ -103,7 +104,7 @@ export class UI {
           rotation: 180,
         }, this.images),
         new TilesUI(this.tilesLayer, {
-          x: tileHeight*scaleOther + PAD,
+          x: tileHeight * scaleOther + PAD,
           y: PAD_LR + PAD,
           rotation: 90,
           ...configOther,
@@ -112,48 +113,51 @@ export class UI {
       // Menu
       this.menu = new Menu(this.menuLayer, {
         x: PAD_TB + PAD,
-        y: HEIGHT - tileHeight - 2*tileHeight*scaleOther - 3*PAD - MESSAGE_SIZE,
+        y: HEIGHT - tileHeight - 2 * tileHeight * scaleOther - 3 * PAD - MESSAGE_SIZE,
       });
     })();
     this.discard = new Discard(this.backgroundLayer, {
       x: DISCARD_PAD,
       y: DISCARD_PAD,
-      width: WIDTH - 2*DISCARD_PAD,
+      width: WIDTH - 2 * DISCARD_PAD,
       height: HEIGHT - DISCARD_PAD - DISCARD_PAD_BOT,
     }, this.images);
   }
+
   static async create(containerId: string): Promise<UI> {
     // Get window size
-    const { innerWidth, innerHeight } = window;
+    const {innerWidth, innerHeight} = window;
     const scale = Math.min(innerWidth / WIDTH, innerHeight / HEIGHT);
     const images = await TileImages.load();
     return new UI(containerId, images, scale);
   }
+
   clearTiles() {
     this.discard.clear();
     this.handTiles.forEach((tiles) => tiles.setTiles(0));
     this.meldTiles.forEach((tiles) => tiles.setTiles(0));
   }
+
   setNames(names?: string[]) {
     if (names === undefined) return;
     this.names.destroyChildren();
     const props = [
       {
-        x: WIDTH/2,
-        y: HEIGHT-300,
+        x: WIDTH / 2,
+        y: HEIGHT - 300,
       },
       {
-        x: WIDTH-300,
-        y: HEIGHT/2,
+        x: WIDTH - 300,
+        y: HEIGHT / 2,
       },
       {
-        x: WIDTH/2,
+        x: WIDTH / 2,
         y: 300,
       },
       {
         x: 300,
-        y: HEIGHT/2,
-      }
+        y: HEIGHT / 2,
+      },
     ];
     names.forEach((name, index) => {
       const text = new Konva.Text({

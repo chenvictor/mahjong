@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
 import {Game} from './Game';
-import {broadcast, send} from './utils';
+import {send} from './utils';
 
 const PORT = process.env.PORT ?? 9090;
 const app = express();
@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 
 //initialize the WebSocket server instance
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({server});
 
 let game: Game | null;
 
@@ -58,7 +58,7 @@ wss.on('connection', (ws: WebSocket) => {
 
 wss.on('close', () => {
   clearInterval(pingInterval);
-})
+});
 
 //start our server
 server.listen(PORT, () => {
