@@ -3,7 +3,8 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "downlevelIteration": true
   },
   "exclude": [
     "server"
