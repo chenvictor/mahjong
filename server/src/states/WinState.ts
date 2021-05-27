@@ -11,7 +11,7 @@ export class WinState implements State {
     this.ready = Array(game.nplayers).fill(false);
     this.numReady = 0;
     this.message();
-    this.game.broadcastTiles(true);
+    this.game.broadcastTiles(true, true);
   }
   private message() {
     this.game.broadcast({
