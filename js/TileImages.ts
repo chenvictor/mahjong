@@ -1,5 +1,5 @@
 import {Index} from '../server/src/shared/types';
-import * as Tiles from '../server/src/shared/Tiles';
+import {Tiles} from '../server/src/shared/Tiles';
 
 const URLS = [
   // Dots

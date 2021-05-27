@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import {clamp} from './utils';
 import {TileImages} from './TileImages';
-import * as Tiles from '../server/src/shared/Tiles';
+import {Tiles} from '../server/src/shared/Tiles';
 
 const HAND_TILE_SPACING = 110;
 const HOVER_OFFSET = 5;

@@ -53,6 +53,11 @@ class GameLogic {
     }
   }
 
+  private setWildcard(tile?: Index | null) {
+    if (tile === undefined) return;
+    this.ui.wildcard.set(tile);
+  }
+
   private sendMove(move: Move) {
     this.send({
       move,
@@ -100,15 +105,16 @@ class GameLogic {
           }
           this.setTiles(message.set_tiles);
           this.discardTile(message.discard);
+          this.setWildcard(message.set_wildcard);
           if (message.message) {
             this.ui.menu.showMessage(message.message);
           }
           this.ui.setNames(message.names);
           this.setMelds(message.set_melds);
         } catch {
-          console.log('could not parse:', event.data);
+          console.error('could not parse:', event.data);
         }
-        console.log('Received:', event.data);
+        console.debug('Received:', event.data);
       };
     });
   }
