@@ -1,5 +1,5 @@
 import {Index} from "./types";
-import {mod, rep} from "../utils";
+import {mod, rep, rotate} from '../utils';
 import {Deque} from "../deque";
 
 export enum TileType {
@@ -66,36 +66,34 @@ export class Tiles {
   }
   public static getValue(tile: Index) {
     return tile % Tiles.NUM_TILES;
-  };
-}
-
-export const genTiles = (exclude: TileType[]): Index[] => {
-  const tiles: Index[] = Array(Tiles.NUM_TILES*4);
-  rep(tiles.length, (i) => {
-    tiles[i] = i;
-  });
-  return tiles.filter((tile) => {
-    return !exclude.includes(Tiles.getType(tile));
-  });
-};
-
-export const distribute = (n: number, tiles: Deque<Index>, start: Index): Set<Index>[] => {
-  const ret: Set<Index>[] = [];
-  rep(n, () => {
-    ret.push(new Set());
-  });
-  rep(3, () => {
-    rep(n, (i) => {
-      rep(4, () => {
-        ret[i].add(tiles.popFront());
-      })
+  }
+  public static sanitize(tiles: Index[]): Index[] {
+    const have = new Set<Index>();
+    for (let i = 0; i < tiles.length; ++i) {
+      while (have.has(tiles[i])) {
+        tiles[i] += Tiles.NUM_TILES;
+      }
+      have.add(tiles[i]);
+    }
+    return tiles;
+  }
+  public static generate(exclude: TileType[] = [], include: TileType[] = []): Index[] {
+    const tiles: Index[] = Array(Tiles.NUM_TILES*4);
+    rep(tiles.length, (i) => {
+      tiles[i] = i;
     });
-  });
-  rep(n, (i) => {
-    ret[mod(start+i, n)].add(tiles.popFront());
-  });
-  return ret;
-};
+    if (exclude.length > 0) {
+      return tiles.filter((tile) => {
+        return !exclude.includes(Tiles.getType(tile));
+      });
+    } else if (include.length > 0) {
+      return tiles.filter((tile) => {
+        return include.includes(Tiles.getType(tile));
+      });
+    }
+    return tiles;
+  }
+}
 
 export const calculateWildcard = (tile: Index): Index => {
   const value = Tiles.getValue(tile);

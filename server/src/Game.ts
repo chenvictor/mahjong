@@ -3,10 +3,10 @@ import {broadcast, maskTilesSetData, meldTilesSetData, mod, rep, rotate, send, s
 import {ClientMessage, Move, ServerMessage} from './events';
 import {Deque} from './deque';
 import {Index} from './shared/types';
-import * as Tiles from './shared/Tiles';
+import {calculateWildcard, Tiles, TileType} from './shared/Tiles';
 import {WinState} from './states/WinState';
-import {WaitingState} from './states/WaitingState';
 import {Meld} from './Meld';
+import {TurnState} from './states/TurnState';
 
 export class Game {
   private readonly wss: WebSocket.Server;
@@ -15,10 +15,9 @@ export class Game {
   public tiles: Deque<Index>;
   private turn: Index;
   private lastTile: Index | null;
-  private handTiles: Set<Index>[];
-  private meldTiles: Meld[][];
+  protected handTiles: Set<Index>[];
+  protected meldTiles: Meld[][];
   private wildcard: Index;
-  // @ts-ignore
   private state: State;
 
   constructor(wss: WebSocket.Server) {
@@ -32,6 +31,37 @@ export class Game {
     this.meldTiles = [];
     this.wildcard = -1;
     this.state = new WinState(this);
+  }
+
+  protected genTiles(): Deque<Index> {
+    const tiles = Tiles.generate([TileType.FLOWERS, TileType.SEASONS]);
+    return new Deque(shuffle(tiles));
+  }
+
+  protected preGame() {
+    /**
+     * Wildcard
+     */
+    const discardWild = this.tiles.popBack();
+    this.wildcard = calculateWildcard(discardWild);
+    this.broadcast({
+      discard: discardWild,
+      set_wildcard: this.wildcard,
+    });
+  }
+
+  protected distributeTiles(tiles: Deque<Index>): Set<Index>[] {
+    const handTiles: Set<Index>[] = Array(this.nplayers).fill(0).map(() => new Set());
+    for (let _ = 0; _ < 3; ++_) {
+      handTiles.forEach((hand) => {
+        hand.add(tiles.popFront());
+        hand.add(tiles.popFront());
+        hand.add(tiles.popFront());
+        hand.add(tiles.popFront());
+      });
+    }
+    handTiles[this.getTurn()].add(tiles.popFront());
+    return handTiles;
   }
 
   public start(turn?: Index) {
@@ -51,30 +81,21 @@ export class Game {
     /**
      * Distribute tiles
      */
-    this.tiles = new Deque(shuffle(Tiles.genTiles([Tiles.TileType.FLOWERS, Tiles.TileType.SEASONS])));
-    this.handTiles = Tiles.distribute(this.nplayers, this.tiles, this.getTurn());
-    this.meldTiles = [];
-    rep(this.nplayers, () => {
-      this.meldTiles.push([]);
-    });
+    this.tiles = this.genTiles();
+    this.handTiles = this.distributeTiles(this.tiles);
+    this.meldTiles = Array(this.nplayers).fill(0).map(() => []);
     this.broadcastTiles();
     this.broadcastMelds();
     this.broadcast({
       discard: null,
     });
-    /**
-     * Wildcard
-     */
-    const discardWild = this.tiles.popBack();
-    this.wildcard = Tiles.calculateWildcard(discardWild);
-    this.broadcast({
-      message: 'Wildcard shown',
-      discard: discardWild,
-    });
+
+    this.preGame();
+
     /**
      * Initialize state
      */
-    this.setState(new WaitingState(this));
+    this.setState(new TurnState(this, this.getTurn()));
   }
 
   public onMessage(ws: WebSocket, message: ClientMessage) {
@@ -84,8 +105,11 @@ export class Game {
     }
   }
 
-  public broadcastTiles(showAll: boolean = false) {
+  public broadcastTiles(showAll: boolean = false, sorted: boolean = false) {
     const tiles = this.handTiles.map((set) => [...set]);
+    if (sorted) {
+      tiles.forEach((list) => list.sort((a,b) => Tiles.getValue(a) - Tiles.getValue(b)));
+    }
     rep(this.nplayers, (i) => {
       const set_tiles = showAll ? rotate(i, tiles) : maskTilesSetData(i, tiles);
       this.send(i, {set_tiles});
@@ -150,6 +174,7 @@ export class Game {
       const meld = Meld.makeKong([...this.meldTiles[player][i].getRawTiles(), tile], true);
       if (meld !== null) {
         this.meldTiles[player][i] = meld;
+        this.broadcastMelds();
         return true;
       }
     }

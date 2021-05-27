@@ -2,6 +2,7 @@ import * as WebSocket from 'ws';
 import {ServerMessage, TilesSetData} from './events';
 import {Index} from './shared/types';
 import {Meld} from './Meld';
+import {Tiles} from './shared/Tiles';
 
 // See: https://stackoverflow.com/a/12646864
 export const shuffle = (array: any[]) => {
