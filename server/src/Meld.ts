@@ -1,5 +1,5 @@
 import {Index} from "./shared/types";
-import * as Tiles from './shared/Tiles';
+import {Tiles, TileType} from './shared/Tiles';
 import {unique} from "./utils";
 
 export enum MeldType {
@@ -7,12 +7,13 @@ export enum MeldType {
   KONG = 'kong',
   CHOW = 'chow',
   EYES = 'eyes',
-}
+  NULL = 'null',
+};
 
 const CHOW_TYPES = new Set([
-  Tiles.TileType.DOTS,
-  Tiles.TileType.BAMBOO,
-  Tiles.TileType.CHARACTERS,
+  TileType.DOTS,
+  TileType.BAMBOO,
+  TileType.CHARACTERS,
 ]);
 
 export class Meld {
@@ -74,6 +75,9 @@ export class Meld {
     const uniqueTiles = unique(tiles.map(Tiles.getValue));
     if (uniqueTiles.length !== 1) return null;
     return new Meld(tiles, MeldType.EYES, exposed);
+  }
+  static makeNull(tiles: Index[]): Meld {
+    return new Meld(tiles, MeldType.NULL, true);
   }
 }
 

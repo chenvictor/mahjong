@@ -10,6 +10,7 @@ export type ServerMessage = {
   discard?: Index | null;
   set_tiles?: TilesSetData;
   set_melds?: TilesSetData;
+  set_wildcard?: Index | null;
 }
 
 export enum Move {

@@ -1,7 +1,8 @@
-import * as WebSocket from "ws";
-import {ServerMessage, TilesSetData} from "./events";
-import {Index} from "./shared/types";
-import {Meld} from "./Meld";
+import * as WebSocket from 'ws';
+import {ServerMessage, TilesSetData} from './events';
+import {Index} from './shared/types';
+import {Meld} from './Meld';
+import {Tiles} from './shared/Tiles';
 
 // See: https://stackoverflow.com/a/12646864
 export const shuffle = (array: any[]) => {
@@ -18,10 +19,11 @@ export const shuffle = (array: any[]) => {
  * @param m
  */
 export const mod = (v: Index, m: number): Index => {
-  return ((v % m)+m) % m;
+  return ((v % m) + m) % m;
 };
 
-export const noop = () => {};
+export const noop = () => {
+};
 
 export const identity = <T>(val: T): T => val;
 
@@ -40,14 +42,14 @@ export const rotate = <T>(player: Index, array: T[]): T[] => {
 };
 
 export const rep = (n: Index, f: (i: Index) => any) => {
-  for (let i=0; i < n; ++i) {
+  for (let i = 0; i < n; ++i) {
     f(i);
   }
-}
+};
 
 export const maskTilesSetData = (player: Index, tilesSetData: TilesSetData): TilesSetData => {
   const rot = rotate(player, tilesSetData);
-  for (let i=1; i < rot.length; ++i) {
+  for (let i = 1; i < rot.length; ++i) {
     const e = rot[i];
     if (Array.isArray(e)) {
       rot[i] = e.length;

@@ -2,16 +2,18 @@ import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
 import {Game} from './Game';
-import {broadcast, send} from './utils';
+import {send} from './utils';
+import DebugGame from './DebugGame';
 
 const PORT = process.env.PORT ?? 9090;
+const DEBUG: boolean = Boolean(process.env.DEBUG);
 const app = express();
 
 //initialize a simple http server
 const server = http.createServer(app);
 
 //initialize the WebSocket server instance
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({server});
 
 let game: Game | null;
 
@@ -20,6 +22,14 @@ const pingInterval = setInterval(() => {
     ws.ping();
   });
 }, 2000);
+
+const newGame = () => {
+  if (DEBUG) {
+    game = new DebugGame(wss);
+  } else {
+    game = new Game(wss);
+  }
+};
 
 wss.on('connection', (ws: WebSocket) => {
 
@@ -37,7 +47,7 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   // TODO game start condition
-  game = new Game(wss);
+  newGame();
 
   ws.on('message', (message: string) => {
     try {
@@ -52,15 +62,18 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', () => {
-    game = new Game(wss);
+    newGame();
   });
 });
 
 wss.on('close', () => {
   clearInterval(pingInterval);
-})
+});
 
 //start our server
 server.listen(PORT, () => {
-  console.log(`Server started on port: ${PORT} :)`);
+  console.log(`Server started on port: ${PORT}`);
+  if (DEBUG) {
+    console.debug('Debug mode on');
+  }
 });
