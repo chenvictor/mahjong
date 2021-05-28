@@ -1,6 +1,6 @@
 import {UI} from './UI';
 import {openSocket} from './socket';
-import {ClientMessage, Move, ServerMessage, TilesSetData} from '../server/src/events';
+import {ClientMessage, Move, ServerMessage, TilesSetData, WinnerData} from '../server/src/events';
 import {Index} from '../server/src/shared/types';
 import {cleanInput} from './utils';
 
@@ -65,14 +65,23 @@ class GameLogic {
     });
   }
 
+  private showWinner(data?: WinnerData | null) {
+    if (data === undefined) return;
+    if (data === null) {
+      this.ui.winCard.clear();
+      return;
+    }
+    this.ui.winCard.show(data);
+  }
+
   run(): Promise<void> {
-    this.ui.clearTiles();
+    this.ui.clear();
     this.ui.menu.setButtons([
       {
         text: '和',
         color: '#FFD700\n',
         handler: () => this.sendMove(Move.WIN),
-      },
+     },
       {
         text: '碰',
         color: 'blue',
@@ -103,6 +112,9 @@ class GameLogic {
           if (message.full) {
             this.onAlert('Server Full');
           }
+          if (message.clear) {
+            this.ui.clear();
+          }
           this.setTiles(message.set_tiles);
           this.discardTile(message.discard);
           this.setWildcard(message.set_wildcard);
@@ -111,6 +123,7 @@ class GameLogic {
           }
           this.ui.setNames(message.names);
           this.setMelds(message.set_melds);
+          this.showWinner(message.winner);
         } catch {
           console.error('could not parse:', event.data);
         }

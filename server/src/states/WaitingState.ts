@@ -4,9 +4,10 @@ import {mod} from '../utils';
 import {Game, State} from '../Game';
 import {TurnState} from './TurnState';
 import {MeldState} from './MeldState';
-import {WinState} from './WinState';
+import {EndState} from './EndState';
 import {KongState} from './KongState';
 import {MeldType, Meld} from '../Meld';
+import WinState from './WinState';
 
 const MOVE_NONE = (move: Move) => move === Move.NONE;
 
@@ -52,8 +53,7 @@ export class WaitingState implements State {
       }
     }
     if (this.shouldEnd(nextMove)) {
-      // TODO maybe better way to end game?
-      this.game.setState(new WinState(this.game));
+      this.game.setState(new EndState(this.game));
       return;
     }
     switch (nextMove) {
@@ -71,7 +71,7 @@ export class WaitingState implements State {
       case Move.WIN:
         this.game.drawTile(nextPlayer, <number>this.game.getDiscard());
         this.game.undiscardTile();
-        this.game.setState(new WinState(this.game));
+        this.game.setState(new WinState(this.game, nextPlayer));
         break;
     }
   }

@@ -4,7 +4,7 @@ import {ClientMessage, Move, ServerMessage} from './events';
 import {Deque} from './deque';
 import {Index} from './shared/types';
 import {calculateWildcard, Tiles, TileType} from './shared/Tiles';
-import {WinState} from './states/WinState';
+import {EndState} from './states/EndState';
 import {Meld} from './Meld';
 import {TurnState} from './states/TurnState';
 
@@ -30,7 +30,7 @@ export class Game {
     this.handTiles = [];
     this.meldTiles = [];
     this.wildcard = -1;
-    this.state = new WinState(this);
+    this.state = new EndState(this);
   }
 
   protected genTiles(): Deque<Index> {
@@ -60,6 +60,9 @@ export class Game {
         hand.add(tiles.popFront());
       });
     }
+    handTiles.forEach((hand) => {
+      hand.add(tiles.popFront());
+    })
     handTiles[this.getTurn()].add(tiles.popFront());
     return handTiles;
   }
@@ -68,6 +71,9 @@ export class Game {
     if (turn !== undefined) {
       this.turn = turn;
     }
+    this.broadcast({
+      clear: true,
+    });
     /**
      * Announce player names
      */
@@ -86,9 +92,6 @@ export class Game {
     this.meldTiles = Array(this.nplayers).fill(0).map(() => []);
     this.broadcastTiles();
     this.broadcastMelds();
-    this.broadcast({
-      discard: null,
-    });
 
     this.preGame();
 

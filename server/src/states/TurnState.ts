@@ -8,8 +8,9 @@ import {Game, State} from '../Game';
 import {Index} from '../shared/types';
 import {Move} from '../events';
 import {DiscardState} from './DiscardState';
-import {WinState} from './WinState';
+import {EndState} from './EndState';
 import {SelfKongState} from './SelfKongState';
+import WinState from './WinState';
 
 export class TurnState implements State {
   private readonly game: Game;
@@ -30,7 +31,7 @@ export class TurnState implements State {
         this.game.setState(new DiscardState(this.game, this.player));
         break;
       case Move.WIN:
-        this.game.setState(new WinState(this.game));
+        this.game.setState(new WinState(this.game, player));
         break;
       case Move.KONG:
         this.game.setState(new SelfKongState(this.game, player));

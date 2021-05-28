@@ -1,6 +1,6 @@
 import Konva from 'konva';
-import {Index} from '../server/src/shared/types';
 import {TilesUI} from './TilesUI';
+import {WinnerData} from '../server/src/events';
 
 type WinCardConfig = {
   centerX: number,
@@ -43,7 +43,7 @@ export default class WinCard {
     this.melds.setTiles([]);
     this.layer.draw();
   }
-  show(tiles: Index[], melds: Index[], playerName: string, value: number, handName: string) {
+  show({tiles, melds, playerName, value, handName}: WinnerData) {
     this.group.destroyChildren();
     this.group.add(new Konva.Rect({
       width: WIDTH,

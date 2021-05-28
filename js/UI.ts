@@ -141,11 +141,12 @@ export class UI {
     return new UI(containerId, scale);
   }
 
-  clearTiles() {
+  clear() {
     this.discard.clear();
     this.handTiles.forEach((tiles) => tiles.setTiles(0));
     this.meldTiles.forEach((tiles) => tiles.setTiles(0));
     this.wildcard.set(null);
+    this.winCard.clear();
   }
 
   setNames(names?: string[]) {
