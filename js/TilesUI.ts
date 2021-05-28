@@ -56,14 +56,12 @@ export class TilesUI {
   private readonly config: TilesConfig;
   private readonly layer: Konva.Layer;
   private readonly group: Konva.Group;
-  public readonly tileImages: TileImages;
 
-  public constructor(layer: Konva.Layer, config: TilesConfigParameter, tileImages: TileImages) {
+  public constructor(layer: Konva.Layer, config: TilesConfigParameter) {
     this.config = paramToConfig(config);
     this.layer = layer;
     const {draggable, selectable, ...rest} = this.config;
     this.group = new Konva.Group(rest);
-    this.tileImages = tileImages;
     this.layer.add(this.group);
     if (draggable) {
       this.initDragEvents();
@@ -111,7 +109,7 @@ export class TilesUI {
       y: 0,
       draggable: this.config.draggable,
       dragDistance: 5,
-      image: this.tileImages.get(tile),
+      image: TileImages.get(tile),
     });
     this.group.add(shape);
     shape.setAttrs({

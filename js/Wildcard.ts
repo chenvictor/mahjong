@@ -14,16 +14,14 @@ type WildcardConfig = {
 export default class Wildcard {
   private readonly layer: Konva.Layer;
   private readonly group: Konva.Group;
-  private readonly images: TileImages;
   private readonly imageScale: number;
-  constructor(layer: Konva.Layer, {x, y, imageScale}: WildcardConfig, images: TileImages) {
+  constructor(layer: Konva.Layer, {x, y, imageScale}: WildcardConfig) {
     this.layer = layer;
     this.group = new Konva.Group({
       x,
       y,
     });
     this.imageScale = imageScale;
-    this.images = images;
     this.layer.add(this.group);
   }
   public set(tile: Index | null) {
@@ -37,7 +35,7 @@ export default class Wildcard {
         y: FONT_SIZE,
         scaleX: this.imageScale,
         scaleY: this.imageScale,
-        image: this.images.get(tile),
+        image: TileImages.get(tile),
       })));
     }
     this.layer.draw();

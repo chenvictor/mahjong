@@ -18,14 +18,12 @@ export class Discard {
   private readonly layer: Konva.Layer;
   private readonly group: Konva.Group;
   private readonly config: DiscardConfig;
-  private readonly images: TileImages;
   private prevImage: Konva.Image | null;
 
-  constructor(layer: Konva.Layer, config: DiscardConfig, images: TileImages) {
+  constructor(layer: Konva.Layer, config: DiscardConfig) {
     this.layer = layer;
     this.group = new Konva.Group(config);
     this.config = config;
-    this.images = images;
     this.prevImage = null;
     this.layer.add(this.group);
     this.layer.draw();
@@ -39,7 +37,7 @@ export class Discard {
 
   public push(tile: Index) {
     const image = new Konva.Image({
-      image: this.images.get(tile),
+      image: TileImages.get(tile),
       scale: LAST_SCALE,
       x: this.config.width / 2,
       y: this.config.height / 2,
@@ -57,11 +55,12 @@ export class Discard {
     });
     this.group.add(image);
     if (this.prevImage) {
-      this.prevImage.scale(SCALE);
-      this.prevImage.x(Math.random() * this.config.width);
-      this.prevImage.y(Math.random() * this.config.height);
-      this.prevImage.rotation(Math.random() * ROTATION * 2 - ROTATION);
-      this.prevImage.draggable(true);
+      this.prevImage
+        .scale(SCALE)
+        .x(Math.random() * this.config.width)
+        .y(Math.random() * this.config.height)
+        .rotation(Math.random() * ROTATION * 2 - ROTATION)
+        .draggable(true);
     }
     this.prevImage = image;
     this.layer.draw();

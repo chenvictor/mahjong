@@ -54,26 +54,26 @@ const URLS = [
 
 
 export class TileImages {
-  private readonly images: HTMLImageElement[];
+  private static images: HTMLImageElement[] | null = null;
 
-  private constructor(images: HTMLImageElement[]) {
-    this.images = images;
-  }
-
-  public get(tile: Index) {
+  public static get(tile: Index): HTMLImageElement {
+    if (this.images === null) {
+      console.error('Failed to load images');
+      return new Image();
+    }
     if (tile === Tiles.BACK) {
       return this.images[42];
     }
     return this.images[Tiles.getValue(tile)];
   }
 
-  static load(): Promise<TileImages> {
+  public static load(): Promise<void> {
     return Promise.all<HTMLImageElement>(URLS.map((url) => new Promise((resolve) => {
       const imageObj = new Image();
       imageObj.onload = () => resolve(imageObj);
       imageObj.src = url;
     }))).then((images) => {
-      return new TileImages(images);
+      this.images = images;
     });
   }
 }
