@@ -15,8 +15,8 @@ export class Game {
   public tiles: Deque<Index>;
   private turn: Index;
   private lastTile: Index | null;
-  protected handTiles: Set<Index>[];
-  protected meldTiles: Meld[][];
+  public handTiles: Set<Index>[];
+  public meldTiles: Meld[][];
   private wildcard: Index;
   private state: State;
 

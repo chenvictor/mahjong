@@ -2,7 +2,6 @@ import * as WebSocket from 'ws';
 import {ServerMessage, TilesSetData} from './events';
 import {Index} from './shared/types';
 import {Meld} from './Meld';
-import {Tiles} from './shared/Tiles';
 
 // See: https://stackoverflow.com/a/12646864
 export const shuffle = (array: any[]) => {
@@ -58,7 +57,7 @@ export const maskTilesSetData = (player: Index, tilesSetData: TilesSetData): Til
   return rot;
 };
 
-const flatten = <T>(array: T[][]): T[] => {
+export const flatten = <T>(array: T[][]): T[] => {
   return array.reduce((acc, val) => acc.concat(val), []);
 };
 
@@ -72,4 +71,18 @@ export const meldTilesSetData = (player: Index, melds: Meld[][], showAll: boolea
     const mapped = melds.map((meld) => meld.toTiles(showAll || index === 0));
     return flatten(mapped);
   });
+};
+
+export const spliceIndices = <T>(array: T[], indices: Index[]): T[] => {
+  const set = new Set(indices);
+  return array.filter(((_value, index) => {
+    return !set.has(index);
+  }));
+};
+
+export const extractIndices = <T>(array: T[], indices: Index[]): T[] => {
+  const set = new Set(indices);
+  return array.filter(((_value, index) => {
+    return set.has(index);
+  }));
 };

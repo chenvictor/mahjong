@@ -1,6 +1,4 @@
 import {Index} from "./types";
-import {mod, rep, rotate} from '../utils';
-import {Deque} from "../deque";
 
 export enum TileType {
   DOTS = 0,
@@ -79,9 +77,9 @@ export class Tiles {
   }
   public static generate(exclude: TileType[] = [], include: TileType[] = []): Index[] {
     const tiles: Index[] = Array(Tiles.NUM_TILES*4);
-    rep(tiles.length, (i) => {
+    for (let i = 0; i < tiles.length; ++i) {
       tiles[i] = i;
-    });
+    }
     if (exclude.length > 0) {
       return tiles.filter((tile) => {
         return !exclude.includes(Tiles.getType(tile));
